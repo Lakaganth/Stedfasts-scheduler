@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stedfasts_scheduler/screens/3.landing_screen/landing_screen.dart';
 import 'package:stedfasts_scheduler/services/auth.dart';
+import 'package:stedfasts_scheduler/services/driver_database.dart';
 import 'package:stedfasts_scheduler/services/schedule_database.dart';
 
 void main() {
@@ -18,6 +19,9 @@ class MyApp extends StatelessWidget {
         ),
         Provider<ScheduleDatabase>(
           create: (context) => ScheduleFirestoreDatabase(),
+        ),
+        Provider<DriverDatabase>(
+          create: (context) => DriveFirestoreDatabase(),
         )
       ],
       child: MaterialApp(

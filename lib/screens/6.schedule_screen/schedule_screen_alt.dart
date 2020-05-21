@@ -9,8 +9,8 @@ import 'package:stedfasts_scheduler/services/schedule_database.dart';
 import 'package:stedfasts_scheduler/utilities/constants.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class ScheduleScreen extends StatefulWidget {
-  ScheduleScreen({@required this.model});
+class ScheduleScreenAlt extends StatefulWidget {
+  ScheduleScreenAlt({@required this.model});
   // final User user;
 
   final ScheduleScreenChangeModel model;
@@ -19,39 +19,103 @@ class ScheduleScreen extends StatefulWidget {
     return ChangeNotifierProvider<ScheduleScreenChangeModel>(
       create: (context) => ScheduleScreenChangeModel(user: user),
       child: Consumer<ScheduleScreenChangeModel>(
-        builder: (context, model, _) => ScheduleScreen(model: model),
+        builder: (context, model, _) => ScheduleScreenAlt(model: model),
       ),
     );
   }
 
   @override
-  _ScheduleScreenState createState() => _ScheduleScreenState();
+  _ScheduleScreenAltState createState() => _ScheduleScreenAltState();
 }
 
-class _ScheduleScreenState extends State<ScheduleScreen> {
+class _ScheduleScreenAltState extends State<ScheduleScreenAlt> {
+  User get user => widget.model.user;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheduleDatase =
+        Provider.of<ScheduleDatabase>(context, listen: false);
+    return Scaffold(
+        body: Container(
+      child: SingleChildScrollView(
+        child: StreamBuilder(
+          stream: scheduleDatase.weeksHoursStream(user),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.active) {
+              if (snapshot.hasData) {
+                List<DaySchedule> items = snapshot.data;
+                return MainScheduleColumn(
+                  schedules: items,
+                );
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Text("Error , ${snapshot.error}"),
+                );
+              } else {
+                return Container(
+                  child: Text("No Data"),
+                );
+              }
+            } else {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          },
+        ),
+      ),
+    ));
+  }
+}
+
+class MainScheduleColumn extends StatefulWidget {
+  MainScheduleColumn({@required this.schedules});
+  // final ScheduleScreenChangeModel model;
+  final List<DaySchedule> schedules;
+
+  // static Widget create(BuildContext context,
+  //     {User user, List<DaySchedule> schedules}) {
+  //   return ChangeNotifierProvider<ScheduleScreenChangeModel>(
+  //     create: (context) =>
+  //         ScheduleScreenChangeModel(user: user, schedules: schedules),
+  //     child: Consumer<ScheduleScreenChangeModel>(
+  //       builder: (context, model, _) => MainScheduleColumn(model: model),
+  //     ),
+  //   );
+  // }
+
+  @override
+  _MainScheduleColumnState createState() => _MainScheduleColumnState();
+}
+
+class _MainScheduleColumnState extends State<MainScheduleColumn> {
+  CalendarController calendarController;
+
+  Map<DateTime, List<dynamic>> events;
+  List<dynamic> selectedEvents;
+  DateTime selectedDate = DateTime.now();
   get screenWidth => MediaQuery.of(context).size.width;
   get screenHeight => MediaQuery.of(context).size.height;
-  // User get user => widget.user;
-  ScheduleScreenChangeModel get model => widget.model;
-  CalendarController _calendarController;
 
-  Map<DateTime, List<dynamic>> _events;
-  List<dynamic> _selectedEvents;
-  DateTime _selectedDate = DateTime.now();
+  // ScheduleScreenChangeModel get model => widget.model;
 
   @override
   void initState() {
     super.initState();
-    _calendarController = CalendarController();
-    _events = {};
-    _selectedEvents = [];
+    calendarController = CalendarController();
+    events = {};
+    selectedEvents = [];
   }
 
-  @override
-  void dispose() {
-    _calendarController.dispose();
+  Map<DateTime, List<dynamic>> groupEvents(List<DaySchedule> allEvents) {
+    Map<DateTime, List<dynamic>> data = {};
+    allEvents.forEach((event) {
+      DateTime date = event.shiftDate;
+      if (data[date] == null) data[date] = [];
+      data[date].add(event);
+    });
 
-    super.dispose();
+    return data;
   }
 
   int weekNumber(DateTime date) {
@@ -59,69 +123,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return ((dayOfYear - date.weekday + 10) / 7).floor();
   }
 
-  Map<DateTime, List<dynamic>> _groupEvents(List<DaySchedule> allEvents) {
-    Map<DateTime, List<dynamic>> data = {};
-    allEvents.forEach((event) {
-      DateTime date = event.shiftDate;
-      if (data[date] == null) data[date] = [];
-      data[date].add(event);
-    });
-    // print(data);
-    return data;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final scheduleDatase =
-        Provider.of<ScheduleDatabase>(context, listen: false);
-    return Scaffold(
-      body: Container(
-        child: SingleChildScrollView(
-          child: StreamBuilder(
-            stream: scheduleDatase.weeksHoursStream(model.user),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.active) {
-                List<DaySchedule> items = snapshot.data;
-                List<DaySchedule> weeksScheduleList = snapshot.data;
-                // List<DaySchedule> weeksScheduleList = items.where((e) {
-                //   int _selectedWeekNumber = weekNumber(_selectedDate);
-                //   return e.weekNumber == _selectedWeekNumber;
-                // }).toList();
-                if (snapshot.hasData) {
-                  return _buildScheduleScaffold(weeksScheduleList);
-                }
-                //Stream data has Error
-                else if (snapshot.hasError) {
-                  Center(
-                    child: Text("Error , ${snapshot.error}"),
-                  );
-                } else {
-                  _events = {};
-                  _selectedEvents = [];
-                  return Container(
-                    child: Text("No Data"),
-                  );
-                }
-              } else {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-            },
-          ),
-        ),
-      ),
-    );
-  }
+    events = groupEvents(widget.schedules);
 
-  Padding _buildScheduleScaffold(List<DaySchedule> weeksScheduleList) {
-    _events = _groupEvents(weeksScheduleList);
-
-    List<DaySchedule> currentWeeksScheduleList = weeksScheduleList.where((e) {
+    List<DaySchedule> currentWeeksScheduleList = widget.schedules.where((e) {
       // int _selectedWeekNumber = weekNumber(_selectedDate);
-      print(model.selectedDate);
-      int _selectedWeekNumber =
-          weekNumber(model.selectedDate ?? DateTime.now());
+      // print(model.selectedDate);
+      int _selectedWeekNumber = weekNumber(selectedDate ?? DateTime.now());
       return e.weekNumber == _selectedWeekNumber;
     }).toList();
 
@@ -131,16 +140,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       totalWeekHours = totalWeekHours + day.shiftHours;
     });
 
-    return Padding(
-      padding: const EdgeInsets.only(
-        top: 25.0,
-      ),
-      child: SingleChildScrollView(
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 12.0),
         child: Column(
           children: [
             TableCalendar(
-              calendarController: _calendarController,
-              events: _events,
+              calendarController: calendarController,
+              events: events,
               initialCalendarFormat: CalendarFormat.month,
               startingDayOfWeek: StartingDayOfWeek.monday,
               formatAnimation: FormatAnimation.slide,
@@ -164,7 +171,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               ),
               availableGestures: AvailableGestures.all,
               onDaySelected: (date, events) {
-                model.updateSelectedEvents(date: date, events: events);
+                setState(() {
+                  selectedDate = date;
+                  selectedEvents = events;
+                });
               },
             ),
             _buildSelectedDateInfoContainer(),
@@ -203,8 +213,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   _buildSelectedDateInfoContainer() {
     String _shiftStartTime;
-    if (model.selectedEvents != null && model.selectedEvents.length > 0) {
-      switch (model.selectedEvents[0].shiftHours) {
+    if (selectedEvents != null && selectedEvents.length > 0) {
+      switch (selectedEvents[0].shiftHours) {
         case 10:
           {
             _shiftStartTime = "8:00 AM";
@@ -242,9 +252,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            model.selectedEvents != null && model.selectedEvents.length > 0
+            selectedEvents != null && selectedEvents.length > 0
                 ? Text(
-                    " ${DateFormat("dd-MM-yyyy").format(model.selectedDate)}",
+                    " ${DateFormat("dd-MM-yyyy").format(selectedDate)}",
                     textAlign: TextAlign.center,
                     style: kDayScheduleInfoTextStyle,
                   )
@@ -252,7 +262,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             SizedBox(
               height: 20.0,
             ),
-            model.selectedEvents != null && model.selectedEvents.length > 0
+            selectedEvents != null && selectedEvents.length > 0
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -274,7 +284,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             SizedBox(
               height: 20.0,
             ),
-            model.selectedEvents != null && model.selectedEvents.length > 0
+            selectedEvents != null && selectedEvents.length > 0
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -283,7 +293,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         style: kDayScheduleInfoTextStyle,
                       ),
                       Text(
-                        "${model.selectedEvents[0].shiftHours} Hrs",
+                        "${selectedEvents[0].shiftHours} Hrs",
                         style: kDayScheduleInfoTextStyle,
                       )
                     ],

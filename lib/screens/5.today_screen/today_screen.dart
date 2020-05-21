@@ -37,7 +37,7 @@ class _TodayScreenState extends State<TodayScreen> {
   void _todayLogin(DaySchedule schedule, var onlyTodayDate) async {
     final scheduleDatabase =
         Provider.of<ScheduleDatabase>(context, listen: false);
-    print("Login time ${DateTime.now()} , The id to be changed ${schedule.id}");
+    // print("Login time ${DateTime.now()} , The id to be changed ${schedule.id}");
     setState(() {
       currentLoginTime = DateTime.now();
       hasLoggedIn = true;
@@ -172,7 +172,7 @@ class _TodayScreenState extends State<TodayScreen> {
   }
 
   Widget _buildPanel(DaySchedule schedule) {
-    print(schedule.shiftHours);
+    // print(schedule.shiftHours);
 
     int shiftStart;
     String shiftLogin = schedule.loginTime != null

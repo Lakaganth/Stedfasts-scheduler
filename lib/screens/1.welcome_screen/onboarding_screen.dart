@@ -10,6 +10,8 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
+  get screenWidth => MediaQuery.of(context).size.width;
+  get screenHeight => MediaQuery.of(context).size.height;
   final int _numPages = 4;
   final PageController _pageController = PageController(initialPage: 0);
   int _currentPage = 0;
@@ -49,7 +51,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(
-                  height: 600.0,
+                  height: screenHeight - 150,
                   child: PageView(
                     physics: ClampingScrollPhysics(),
                     controller: _pageController,
@@ -70,7 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 height: 400,
                               ),
                             ),
-                            SizedBox(height: 30.0),
+                            SizedBox(height: 10.0),
                             Text(
                               "Check your daily schedule",
                               textAlign: TextAlign.center,
@@ -91,7 +93,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 height: 400,
                               ),
                             ),
-                            SizedBox(height: 30.0),
+                            SizedBox(height: 10.0),
                             Text(
                               "Punch In your Daily Start time",
                               textAlign: TextAlign.center,
@@ -112,7 +114,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 height: 400,
                               ),
                             ),
-                            SizedBox(height: 30.0),
+                            SizedBox(height: 10.0),
                             Text(
                               "Make sure to punch your Lunch time",
                               textAlign: TextAlign.center,
@@ -133,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 height: 450,
                               ),
                             ),
-                            SizedBox(height: 30.0),
+                            SizedBox(height: 10.0),
                             Text(
                               "Drive safe!",
                               textAlign: TextAlign.center,
@@ -150,7 +152,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: _buildPageIndicator(),
                 ),
-                SizedBox(height: 30.0),
+                SizedBox(height: 5.0),
                 _currentPage != _numPages - 1
                     ? Row(
                         children: [
@@ -188,8 +190,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         child: Align(
                             alignment: FractionalOffset.bottomRight,
                             child: Padding(
-                              padding:
-                                  EdgeInsets.only(bottom: 15.0, right: 15.0),
+                              padding: EdgeInsets.only(bottom: 0.0, right: 0.0),
                               child: GestureDetector(
                                 onTap: () {
                                   Navigator.of(context).push(

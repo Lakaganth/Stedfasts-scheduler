@@ -33,6 +33,9 @@ class _SigninScreen extends State<SigninScreen> {
   final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
 
+  get screenWidth => MediaQuery.of(context).size.width;
+  get screenHeight => MediaQuery.of(context).size.height;
+
   SigninModel get model => widget.model;
 
   @override
@@ -54,6 +57,7 @@ class _SigninScreen extends State<SigninScreen> {
   Future<void> _submit() async {
     try {
       await model.submit();
+      Navigator.of(context).pop();
     } on PlatformException catch (e) {
       PlatformExceptionAlertDialog(title: 'Sign In Failed', exception: e)
           .show(context);
@@ -65,7 +69,7 @@ class _SigninScreen extends State<SigninScreen> {
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
-          // height: 600,
+          // height: screenHeight - 100,
           child: Column(
             children: [
               Container(

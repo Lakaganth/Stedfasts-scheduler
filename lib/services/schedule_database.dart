@@ -11,6 +11,7 @@ abstract class ScheduleDatabase {
   Stream<List<DaySchedule>> scheduleStream();
   Stream<List<DaySchedule>> weeksHoursStream(User user);
   Future<void> deleteScheduleForDriver({@required String scheduleId});
+  Stream<List<DaySchedule>> weeksHoursStreamDriver(Driver driver);
 }
 
 class ScheduleFirestoreDatabase implements ScheduleDatabase {
@@ -38,6 +39,15 @@ class ScheduleFirestoreDatabase implements ScheduleDatabase {
         path: APIPath.daySchedules(),
         queryBuilder: user != null
             ? (query) => query.where('driverId', isEqualTo: user.uid)
+            : null,
+        builder: (data, documentId) => DaySchedule.fromMap(data, documentId),
+      );
+  @override
+  Stream<List<DaySchedule>> weeksHoursStreamDriver(Driver driver) =>
+      _service.collectionStream<DaySchedule>(
+        path: APIPath.daySchedules(),
+        queryBuilder: driver != null
+            ? (query) => query.where('driverId', isEqualTo: driver.id)
             : null,
         builder: (data, documentId) => DaySchedule.fromMap(data, documentId),
       );
