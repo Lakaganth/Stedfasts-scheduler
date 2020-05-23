@@ -36,35 +36,36 @@ class _ScheduleScreenAltState extends State<ScheduleScreenAlt> {
     final scheduleDatase =
         Provider.of<ScheduleDatabase>(context, listen: false);
     return Scaffold(
+        backgroundColor: Colors.white,
         body: Container(
-      child: SingleChildScrollView(
-        child: StreamBuilder(
-          stream: scheduleDatase.weeksHoursStream(user),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.active) {
-              if (snapshot.hasData) {
-                List<DaySchedule> items = snapshot.data;
-                return MainScheduleColumn(
-                  schedules: items,
-                );
-              } else if (snapshot.hasError) {
-                return Center(
-                  child: Text("Error , ${snapshot.error}"),
-                );
-              } else {
-                return Container(
-                  child: Text("No Data"),
-                );
-              }
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-          },
-        ),
-      ),
-    ));
+          child: SingleChildScrollView(
+            child: StreamBuilder(
+              stream: scheduleDatase.weeksHoursStream(user),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.active) {
+                  if (snapshot.hasData) {
+                    List<DaySchedule> items = snapshot.data;
+                    return MainScheduleColumn(
+                      schedules: items,
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text("Error , ${snapshot.error}"),
+                    );
+                  } else {
+                    return Container(
+                      child: Text("No Data"),
+                    );
+                  }
+                } else {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              },
+            ),
+          ),
+        ));
   }
 }
 
@@ -128,8 +129,7 @@ class _MainScheduleColumnState extends State<MainScheduleColumn> {
     events = groupEvents(widget.schedules);
 
     List<DaySchedule> currentWeeksScheduleList = widget.schedules.where((e) {
-      // int _selectedWeekNumber = weekNumber(_selectedDate);
-      // print(model.selectedDate);
+         
       int _selectedWeekNumber = weekNumber(selectedDate ?? DateTime.now());
       return e.weekNumber == _selectedWeekNumber;
     }).toList();
@@ -148,7 +148,7 @@ class _MainScheduleColumnState extends State<MainScheduleColumn> {
             TableCalendar(
               calendarController: calendarController,
               events: events,
-              initialCalendarFormat: CalendarFormat.month,
+              initialCalendarFormat: CalendarFormat.twoWeeks,
               startingDayOfWeek: StartingDayOfWeek.monday,
               formatAnimation: FormatAnimation.slide,
               headerStyle: HeaderStyle(
@@ -336,7 +336,7 @@ class _MainScheduleColumnState extends State<MainScheduleColumn> {
           _borderColor = Colors.green;
         }
         break;
-      case 6:
+      case 5:
         {
           _shiftStartTime = "6:00 PM";
           _borderColor = Colors.blue;
@@ -351,7 +351,7 @@ class _MainScheduleColumnState extends State<MainScheduleColumn> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            "${shiftDate} \n $scheduleDay",
+            "$shiftDate \n $scheduleDay",
             textAlign: TextAlign.right,
             style: GoogleFonts.montserrat(
               fontSize: 18.0,

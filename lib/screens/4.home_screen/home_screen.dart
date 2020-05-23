@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'package:provider/provider.dart';
 import 'package:stedfasts_scheduler/screens/5.today_screen/today_screen.dart';
-import 'package:stedfasts_scheduler/screens/6.schedule_screen/schedule_screen.dart';
 import 'package:stedfasts_scheduler/screens/6.schedule_screen/schedule_screen_alt.dart';
 import 'package:stedfasts_scheduler/screens/7.accounts_screen/accounts_screen.dart';
 import 'package:stedfasts_scheduler/services/auth.dart';
-import 'package:stedfasts_scheduler/services/schedule_database.dart';
 
 class HomeScreen extends StatefulWidget {
   final User user;
@@ -29,9 +26,11 @@ class _HomeScreenState extends State<HomeScreen> {
           TodayScreen(
             user: widget.user,
           ),
-          ScheduleScreenAlt.create(context, user: widget.user),
-          // ScheduleScreen.create(context, user: widget.user),
-          AccountsScreen()
+          ScheduleScreenAlt.create(
+            context,
+            user: widget.user,
+          ),
+          AccountsScreen(),
         ],
         onPageChanged: (int index) {
           setState(() {
@@ -40,10 +39,10 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
       bottomNavigationBar: CurvedNavigationBar(
-        index: 2,
+        index: 0,
         color: Color(0xff714AC3),
         backgroundColor: Colors.white,
-        buttonBackgroundColor: Color(0xffCA1EE5),
+        buttonBackgroundColor: Color(0xff714AC3),
         height: 50.0,
         animationDuration: Duration(milliseconds: 200),
         animationCurve: Curves.bounceInOut,

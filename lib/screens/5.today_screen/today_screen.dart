@@ -37,7 +37,6 @@ class _TodayScreenState extends State<TodayScreen> {
   void _todayLogin(DaySchedule schedule, var onlyTodayDate) async {
     final scheduleDatabase =
         Provider.of<ScheduleDatabase>(context, listen: false);
-    // print("Login time ${DateTime.now()} , The id to be changed ${schedule.id}");
     setState(() {
       currentLoginTime = DateTime.now();
       hasLoggedIn = true;
@@ -80,34 +79,39 @@ class _TodayScreenState extends State<TodayScreen> {
   @override
   Widget build(BuildContext context) {
     final ScheduleDatabase schedule = Provider.of<ScheduleDatabase>(context);
-    final AuthBase auth = Provider.of<AuthBase>(context);
+    // final AuthBase auth = Provider.of<AuthBase>(context);
     return StreamBuilder(
       stream: schedule.weeksHoursStream(widget.user),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.active) {
-          List<DaySchedule> items = snapshot.data;
-
-          List<DaySchedule> todaySchedule = items.where((e) {
-            var onlyTodayDate = DateFormat('d-MM-yyyy').format(_todayDateTime);
-            var onlyElementDate = DateFormat('d-MM-yyyy').format(e.shiftDate);
-
-            return onlyTodayDate == onlyElementDate;
-          }).toList();
-
           if (snapshot.hasData) {
-            return Scaffold(
-              body: SlidingUpPanel(
-                backdropEnabled: true,
-                borderRadius: _panelRadius,
-                body: _buildBody(),
-                panel: _buildPanel(todaySchedule[0]),
-              ),
-            );
+            List<DaySchedule> items = snapshot.data;
+
+            List<DaySchedule> todaySchedule = items.where((e) {
+              var onlyTodayDate =
+                  DateFormat('d-MM-yyyy').format(_todayDateTime);
+              var onlyElementDate = DateFormat('d-MM-yyyy').format(e.shiftDate);
+              return onlyTodayDate == onlyElementDate;
+            }).toList();
+
+            if (todaySchedule.length > 0) {
+              return Scaffold(
+                backgroundColor: Colors.white,
+                body: SlidingUpPanel(
+                  backdropEnabled: true,
+                  borderRadius: _panelRadius,
+                  body: _buildBody(),
+                  panel: _buildPanel(todaySchedule[0]),
+                ),
+              );
+            } else {
+              return _buildNoShiftCard();
+            }
           } else if (snapshot.hasError) {
             return Center(
               child: Text("Error , ${snapshot.error}"),
             );
-          } else if (todaySchedule.length == 0) {
+          } else {
             return Container(
               child: Text("No Data"),
             );
@@ -163,7 +167,7 @@ class _TodayScreenState extends State<TodayScreen> {
             width: screenWidth,
             height: 200.0,
             child: Column(
-              children: _buildTodayDate(),
+              children: _buildTodayDate(false),
             ),
           ),
         ),
@@ -171,9 +175,38 @@ class _TodayScreenState extends State<TodayScreen> {
     );
   }
 
-  Widget _buildPanel(DaySchedule schedule) {
-    // print(schedule.shiftHours);
+  Scaffold _buildNoShiftCard() {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Container(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color.fromRGBO(0, 0, 0, .5),
+                    blurRadius: 20.0,
+                    offset: Offset(5, 12),
+                  )
+                ],
+                color: Color.fromRGBO(29, 28, 29, 1),
+              ),
+              width: screenWidth,
+              height: 200.0,
+              child: Column(
+                children: _buildTodayDate(true),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
+  Widget _buildPanel(DaySchedule schedule) {
     int shiftStart;
     String shiftLogin = schedule.loginTime != null
         ? DateFormat.jm().format(schedule.loginTime)
@@ -234,19 +267,19 @@ class _TodayScreenState extends State<TodayScreen> {
     );
   }
 
-  List<Widget> _buildTodayDate() {
+  List<Widget> _buildTodayDate(bool noShift) {
     String _todayDay = _todayDate.split('-')[0];
     String _todayMonth = _todayDate.split('-')[1];
     String _todayYear = _todayDate.split('-')[2];
 
     return [
       SizedBox(
-        height: 20.0,
+        height: 10.0,
       ),
       Text(
         "$_todayDay $_todayMonth",
         style: GoogleFonts.montserrat(
-          fontSize: 54.0,
+          fontSize: !noShift ? 54.0 : 32.0,
           color: Colors.white,
           fontWeight: FontWeight.w600,
           letterSpacing: 10.8,
@@ -255,7 +288,7 @@ class _TodayScreenState extends State<TodayScreen> {
       Text(
         "$_todayYear",
         style: GoogleFonts.montserrat(
-          fontSize: 44.0,
+          fontSize: !noShift ? 44.0 : 24.0,
           color: Colors.white,
           fontWeight: FontWeight.w600,
           letterSpacing: 10.8,
@@ -264,12 +297,27 @@ class _TodayScreenState extends State<TodayScreen> {
       Text(
         "$_todayDayName",
         style: GoogleFonts.montserrat(
-          fontSize: 32.0,
+          fontSize: !noShift ? 32.0 : 20.0,
           color: Colors.white,
           fontWeight: FontWeight.w100,
           letterSpacing: 10.8,
         ),
       ),
+      SizedBox(
+        height: noShift ? 20.0 : 0.0,
+      ),
+      noShift
+          ? Text(
+              "No shift today, Check schedule for next shift",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 24.0,
+                color: Colors.white,
+                fontWeight: FontWeight.w300,
+                // letterSpacing: 10.8,
+              ),
+            )
+          : Text('')
     ];
   }
 

@@ -94,7 +94,7 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
   int shiftHours;
   bool canAddSchedule = true;
 
-  String scheduleId() => '${_selectedDate}+${widget.driver.id}';
+  String scheduleId() => '$_selectedDate+${widget.driver.id}';
 
   @override
   void initState() {

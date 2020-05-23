@@ -12,6 +12,9 @@ abstract class AuthBase {
   Future<User> createUserWithEmailAndPassword(String email, String password);
   Stream<User> get onAuthStateChanged;
   Future<User> currentUser();
+  Future<void> sendResetPasswordEmail(String email);
+
+  Future<void> resetPassword(String oobCode, String newPassword);
 }
 
 class Auth implements AuthBase {
@@ -58,5 +61,17 @@ class Auth implements AuthBase {
   Future<User> currentUser() async {
     final user = await _firebaseAuth.currentUser();
     return _userFromFrirebase(user);
+  }
+
+// Send Reset Password Email
+  @override
+  Future<void> sendResetPasswordEmail(String email) async {
+    await _firebaseAuth.sendPasswordResetEmail(email: email);
+  }
+
+// Reset Password
+  @override
+  Future<void> resetPassword(String oobCode, String newPassword) async {
+    await _firebaseAuth.confirmPasswordReset(oobCode, newPassword);
   }
 }

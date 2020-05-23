@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:stedfasts_scheduler/common/platform_exception_alert_dialog.dart';
+import 'package:stedfasts_scheduler/screens/2.signin_screen/reset_password_confirm_email.dart';
 import 'package:stedfasts_scheduler/screens/2.signin_screen/signin_viewmodel.dart';
 import 'package:stedfasts_scheduler/services/auth.dart';
 import 'package:stedfasts_scheduler/utilities/fade_animation.dart';
@@ -227,11 +228,14 @@ class _SigninScreen extends State<SigninScreen> {
           ),
           FadeAnimation(
             1.5,
-            Text(
-              "Forgot Password?",
-              style: TextStyle(
-                color: Color.fromRGBO(143, 148, 251, 1),
-                fontSize: 16.0,
+            FlatButton(
+              onPressed: () => ResetPasswordConfirmEmail.create(context),
+              child: Text(
+                "Forgot Password?",
+                style: TextStyle(
+                  color: Color.fromRGBO(143, 148, 251, 1),
+                  fontSize: 16.0,
+                ),
               ),
             ),
           ),
