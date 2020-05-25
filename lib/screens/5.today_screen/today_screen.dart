@@ -8,6 +8,8 @@ import 'package:stedfasts_scheduler/models/schedule_model.dart';
 import 'package:stedfasts_scheduler/services/auth.dart';
 import 'package:stedfasts_scheduler/services/schedule_database.dart';
 import 'package:timer_builder/timer_builder.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/cupertino.dart';
 
 class TodayScreen extends StatefulWidget {
   TodayScreen({@required this.user});
@@ -23,6 +25,105 @@ class _TodayScreenState extends State<TodayScreen> {
   bool hasLoggedIn = false;
   bool finishedLunch = false;
   DateTime currentLoginTime;
+  DateTime lunchTime;
+
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+  AndroidInitializationSettings androidInitializationSettings;
+  IOSInitializationSettings iosInitializationSettings;
+  InitializationSettings initializationSettings;
+
+  @override
+  void initState() {
+    super.initState();
+    initializing();
+  }
+
+  void initializing() async {
+    androidInitializationSettings = AndroidInitializationSettings('app_icon');
+    iosInitializationSettings = IOSInitializationSettings(
+        onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+    initializationSettings = InitializationSettings(
+        androidInitializationSettings, iosInitializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: onSelectNotification);
+  }
+
+  void _showNotifications() async {
+    await loginNotification();
+  }
+
+  void _showLunchReminderNotification() async {
+    await fiveMinutestoLunchNotification();
+    print('hello');
+  }
+
+  Future<void> loginNotification() async {
+    AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+            'Channel ID', 'Channel title', 'channel body',
+            priority: Priority.High,
+            importance: Importance.Max,
+            ticker: 'test');
+    IOSNotificationDetails iosNotificationDetails = IOSNotificationDetails();
+
+    NotificationDetails notificationDetails =
+        NotificationDetails(androidNotificationDetails, iosNotificationDetails);
+    await flutterLocalNotificationsPlugin.show(
+        0,
+        'Logged in',
+        'Hello',
+        // 'You\'ve logged in at $currentLoginTime. Lunch at $lunchTime',
+        notificationDetails);
+  }
+
+  Future<void> fiveMinutestoLunchNotification() async {
+    var timeDelayed = DateTime.now().add(Duration(seconds: 5));
+    print("Before notification Showed");
+    AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+            'second channel ID', 'second Channel title', 'second channel body',
+            priority: Priority.High,
+            importance: Importance.Max,
+            ticker: 'test');
+
+    IOSNotificationDetails iosNotificationDetails = IOSNotificationDetails();
+
+    NotificationDetails notificationDetails =
+        NotificationDetails(androidNotificationDetails, iosNotificationDetails);
+    await flutterLocalNotificationsPlugin.schedule(
+        1,
+        'Hello',
+        'Your scheduled lunch starts in 5 minutes!',
+        timeDelayed,
+        notificationDetails,
+        androidAllowWhileIdle: true);
+    print("Notificiaiton Showed");
+  }
+
+  Future onSelectNotification(String payLoad) {
+    if (payLoad != null) {
+      print(payLoad);
+    }
+
+    // we can set navigator to navigate another screen
+  }
+
+  Future onDidReceiveLocalNotification(
+      int id, String title, String body, String payload) async {
+    return CupertinoAlertDialog(
+      title: Text(title),
+      content: Text(body),
+      actions: <Widget>[
+        CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () {
+              print("");
+            },
+            child: Text("Okay")),
+      ],
+    );
+  }
 
   BorderRadius _panelRadius = BorderRadius.only(
       topLeft: Radius.circular(35.0), topRight: Radius.circular(35.0));
@@ -39,6 +140,7 @@ class _TodayScreenState extends State<TodayScreen> {
         Provider.of<ScheduleDatabase>(context, listen: false);
     setState(() {
       currentLoginTime = DateTime.now();
+      lunchTime = currentLoginTime.add(Duration(hours: 4));
       hasLoggedIn = true;
     });
     DaySchedule todayLogin = DaySchedule(
@@ -53,6 +155,8 @@ class _TodayScreenState extends State<TodayScreen> {
       lunchTime: null,
     );
     await scheduleDatabase.setNewSchedule(todayLogin);
+    _showNotifications();
+    _showLunchReminderNotification();
   }
 
   void _todayLunch(DaySchedule schedule, var onlyTodayDate) async {
@@ -128,7 +232,7 @@ class _TodayScreenState extends State<TodayScreen> {
                   padding: const EdgeInsets.all(8.0),
                   child: Icon(Icons.warning),
                 ),
-                Text('Error in loadind data')
+                Text('Error in loading data')
               ],
             ),
           );
