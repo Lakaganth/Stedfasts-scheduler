@@ -33,28 +33,29 @@ class DaySchedule {
     }
     final String driverId = data['driverId'];
     final String driverName = data['driverName'];
-    final int shiftDate = data['shiftDate'];
+    final DateTime shiftDate =
+        DateTime.parse(data['shiftDate'].toDate().toString());
     final String shiftType = data['shiftType'];
     final int weekNumber = data['weekNumber'];
     final int shiftHours = data['shiftHours'];
-    final int loginTime = data['loginTime'];
-    final int lunchTime = data['lunchTime'];
+    final DateTime loginTime = data['loginTime'] != null
+        ? DateTime.parse(data['loginTime'].toDate().toString())
+        : null;
+    final DateTime lunchTime = data['lunchTime'] != null
+        ? DateTime.parse(data['lunchTime'].toDate().toString())
+        : null;
     final bool eod = data['eod'];
 
     return DaySchedule(
       id: documentId,
       driverId: driverId,
       driverName: driverName,
-      shiftDate: DateTime.fromMillisecondsSinceEpoch(shiftDate),
+      shiftDate: shiftDate,
       shiftType: shiftType,
       weekNumber: weekNumber,
       shiftHours: shiftHours,
-      loginTime: loginTime != null
-          ? DateTime.fromMillisecondsSinceEpoch(loginTime)
-          : null,
-      lunchTime: lunchTime != null
-          ? DateTime.fromMillisecondsSinceEpoch(lunchTime)
-          : null,
+      loginTime: loginTime != null ? loginTime : null,
+      lunchTime: lunchTime != null ? lunchTime : null,
       eod: eod,
     );
   }
@@ -64,11 +65,11 @@ class DaySchedule {
       return {
         'driverId': driverId,
         'driverName': driverName,
-        'shiftDate': shiftDate.millisecondsSinceEpoch,
+        'shiftDate': shiftDate,
         'shiftType': shiftType,
         'weekNumber': weekNumber,
         'shiftHours': shiftHours,
-        'loginTime': loginTime.millisecondsSinceEpoch,
+        'loginTime': loginTime,
         'eod': eod
         // 'lunchTime': null,
       };
@@ -76,19 +77,19 @@ class DaySchedule {
       return {
         'driverId': driverId,
         'driverName': driverName,
-        'shiftDate': shiftDate.millisecondsSinceEpoch,
+        'shiftDate': shiftDate,
         'shiftType': shiftType,
         'weekNumber': weekNumber,
         'shiftHours': shiftHours,
-        'loginTime': loginTime.millisecondsSinceEpoch,
-        'lunchTime': lunchTime.millisecondsSinceEpoch,
+        'loginTime': loginTime,
+        'lunchTime': lunchTime,
         'eod': eod
       };
     } else {
       return {
         'driverId': driverId,
         'driverName': driverName,
-        'shiftDate': shiftDate.millisecondsSinceEpoch,
+        'shiftDate': shiftDate,
         'shiftType': shiftType,
         'weekNumber': weekNumber,
         'shiftHours': shiftHours,

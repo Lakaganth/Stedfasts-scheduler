@@ -175,7 +175,7 @@ class _DriverListViewState extends State<DriverListView> {
               padding:
                   const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
               child: Container(
-                height: 100.0,
+                height: 120.0,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
                   color: Color(0xffD6DAFC),
@@ -189,13 +189,13 @@ class _DriverListViewState extends State<DriverListView> {
                 ),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        "https://www.shareicon.net/data/512x512/2016/04/10/747353_people_512x512.png"),
+                    backgroundImage: NetworkImage(driver.avatarUrl),
+                    radius: 25.0,
                   ),
                   title: Text(
                     driver.name,
                     style: GoogleFonts.montserrat(
-                      fontSize: 24.0,
+                      fontSize: 18.0,
                       // color: Colors.white,
                     ),
                   ),

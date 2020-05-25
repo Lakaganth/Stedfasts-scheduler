@@ -144,7 +144,7 @@ class _TodayScreenState extends State<TodayScreen> {
           child: Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/today/map_bg.png'),
+                image: AssetImage('assets/images/today/map_bg.jpg'),
                 fit: BoxFit.cover,
               ),
             ),

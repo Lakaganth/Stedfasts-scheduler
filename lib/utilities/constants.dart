@@ -10,3 +10,12 @@ var kDayScheduleInfoTextStyle = GoogleFonts.montserrat(
   fontSize: 28.0,
   color: Colors.white,
 );
+
+var kAccountDriverInfoLabel = GoogleFonts.montserrat(
+  fontSize: 16.0,
+  color: Color(0xff6B6969),
+);
+var kAccountDriverInfo = GoogleFonts.montserrat(
+  fontSize: 12.0,
+  color: Colors.white,
+);

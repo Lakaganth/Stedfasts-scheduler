@@ -220,8 +220,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Positioned _skipButton() {
-    return Positioned(
+  Container _skipButton() {
+    return Container(
       // alignment: Alignment.bottomLeft,
       child: FlatButton(
         onPressed: () {
