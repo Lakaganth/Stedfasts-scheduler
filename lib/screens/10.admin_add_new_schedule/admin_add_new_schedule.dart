@@ -105,6 +105,7 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
     _selectedEvents = [];
     // checkOneDaysBefore(driverFullSchedule);
     checkSixthDay(driverFullSchedule, DateTime.now(), 1);
+    checkNextDays(driverFullSchedule, DateTime.now(), 1);
     super.initState();
   }
 
@@ -162,6 +163,39 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
     });
   }
 
+  checkNextDays(
+      List<DaySchedule> driverFullSchedule, DateTime selectedDate, int i) {
+    DateTime nextDate = selectedDate.add(Duration(days: i));
+    var onlyNextDate = DateFormat('dd-MM-yyyy').format(nextDate);
+
+    driverFullSchedule.forEach((e) {
+      var onlyscheduleDate = DateFormat('d-MM-yyyy').format(e.shiftDate);
+      if (onlyscheduleDate == onlyNextDate) {
+        if (i != 1) {
+          checkNextDays(driverFullSchedule, selectedDate, i - 1);
+        } else {
+          setState(() {
+            canAddSchedule = false;
+          });
+        }
+      }
+    });
+  }
+
+  void checkNextSixthDay(
+      List<DaySchedule> driverFullSchedule, DateTime selectedDate, int i) {
+    DateTime nextSixthDate = selectedDate.add(Duration(days: 6));
+
+    var onlyNextSixthDate = DateFormat('dd-MM-yyyy').format(nextSixthDate);
+
+    driverFullSchedule.forEach((e) {
+      var onlyscheduleDate = DateFormat('d-MM-yyyy').format(e.shiftDate);
+      if (onlyscheduleDate == onlyNextSixthDate) {
+        checkNextDays(driverFullSchedule, selectedDate, 5);
+      }
+    });
+  }
+
   _submit() async {
     final scheduleDatabase =
         Provider.of<ScheduleDatabase>(context, listen: false);
@@ -185,6 +219,7 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
     }).toList();
 
     checkSixthDay(driverFullSchedule, _selectedDate, 1);
+    checkNextSixthDay(driverFullSchedule, _selectedDate, 1);
 
     _events = _groupEvents(driverFullSchedule);
 

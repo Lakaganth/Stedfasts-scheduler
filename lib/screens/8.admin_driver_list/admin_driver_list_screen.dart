@@ -93,6 +93,7 @@ class _DriverListViewState extends State<DriverListView> {
   filterList() {
     List<Driver> drivers = [];
     drivers.addAll(driverListStream);
+    drivers.sort((a, b) => a.name.compareTo(b.name));
     favouriteList = [];
     normalList = [];
     driverNameList = [];
@@ -163,47 +164,51 @@ class _DriverListViewState extends State<DriverListView> {
             ],
             secondaryActions: <Widget>[
               IconSlideAction(
-                iconWidget: Icon(Icons.star),
-                onTap: () {},
-              ),
+                  iconWidget: Icon(Icons.star),
+                  onTap: () =>
+                      AdminAddNewSchedule.show(context, driver: driver)),
               IconSlideAction(
                 iconWidget: Icon(Icons.more_horiz),
                 onTap: () {},
               ),
             ],
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-              child: Container(
-                height: 120.0,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  color: Color(0xffD6DAFC),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color.fromRGBO(0, 0, 0, .5),
-                      blurRadius: 10.0,
-                      offset: Offset(0, 5),
-                    )
-                  ],
-                ),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(driver.avatarUrl),
-                    radius: 25.0,
+            child: FlatButton(
+              onPressed: () =>
+                  AdminAddNewSchedule.show(context, driver: driver),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10.0, horizontal: 0.0),
+                child: Container(
+                  height: 120.0,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.0),
+                    color: Color(0xffD6DAFC),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color.fromRGBO(0, 0, 0, .5),
+                        blurRadius: 10.0,
+                        offset: Offset(0, 5),
+                      )
+                    ],
                   ),
-                  title: Text(
-                    driver.name,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 18.0,
-                      // color: Colors.white,
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: NetworkImage(driver.avatarUrl),
+                      radius: 25.0,
                     ),
-                  ),
-                  subtitle: Text(
-                    driver.email,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 16.0,
-                      // color: Colors.white54,
+                    title: Text(
+                      driver.name,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18.0,
+                        // color: Colors.white,
+                      ),
+                    ),
+                    subtitle: Text(
+                      driver.email,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16.0,
+                        // color: Colors.white54,
+                      ),
                     ),
                   ),
                 ),
@@ -233,6 +238,7 @@ class _DriverListViewState extends State<DriverListView> {
 
   @override
   void dispose() {
+    searchController.clear();
     super.dispose();
   }
 

@@ -333,9 +333,9 @@ class _TodayScreenState extends State<TodayScreen> {
           shiftStart = 12;
         }
         break;
-      case 6:
+      case 5:
         {
-          shiftStart = 6;
+          shiftStart = 5;
         }
         break;
     }
