@@ -201,13 +201,35 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
         Provider.of<ScheduleDatabase>(context, listen: false);
 
     final DaySchedule schedule = DaySchedule(
-        id: scheduleId(),
-        driverId: widget.driver.id,
-        driverName: widget.driver.name,
-        shiftDate: _selectedDate,
-        shiftType: shiftType.toString(),
-        weekNumber: _selectedDateWeekNumber,
-        shiftHours: shiftHours);
+      id: scheduleId(),
+      driverId: widget.driver.id,
+      driverName: widget.driver.name,
+      shiftDate: _selectedDate,
+      shiftType: shiftType.toString(),
+      weekNumber: _selectedDateWeekNumber,
+      shiftHours: shiftHours,
+      vacationRequested: false,
+      vacationAccepted: false,
+    );
+    await scheduleDatabase.setNewSchedule(schedule);
+  }
+
+  _acceptVacationRequest(DaySchedule vSchedule) async {
+    final scheduleDatabase =
+        Provider.of<ScheduleDatabase>(context, listen: false);
+
+    final DaySchedule schedule = DaySchedule(
+      id: vSchedule.id,
+      driverId: vSchedule.driverId,
+      driverName: vSchedule.driverName,
+      shiftDate: vSchedule.shiftDate,
+      weekNumber: vSchedule.weekNumber,
+      shiftHours: 0,
+      vacationType: vSchedule.vacationType,
+      vacationRequested: vSchedule.vacationRequested,
+      vacationAccepted: true,
+    );
+
     await scheduleDatabase.setNewSchedule(schedule);
   }
 
@@ -272,26 +294,39 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
             ),
             ..._selectedEvents.map(
               (hours) => ListTile(
-                title: hours.shiftHours > 0
+                title: !hours.vacationRequested
                     ? Text(
                         "Hours for the selected day : ${hours.shiftHours}",
                         style: TextStyle(fontSize: 18.0),
                       )
-                    : Text(''),
-                trailing: IconButton(
-                  icon: Icon(Icons.remove_circle),
-                  onPressed: () async {
-                    var onlyWidgetDate =
-                        DateFormat('d-MM-yyyy').format(_selectedDate);
-                    var onlyStreamDate =
-                        DateFormat('d-MM-yyyy').format(hours.shiftDate);
+                    : Text('Vactation Requested : ${hours.vacationType}'),
+                trailing: !hours.vacationRequested
+                    ? IconButton(
+                        icon: Icon(Icons.remove_circle),
+                        onPressed: () async {
+                          var onlyWidgetDate =
+                              DateFormat('d-MM-yyyy').format(_selectedDate);
+                          var onlyStreamDate =
+                              DateFormat('d-MM-yyyy').format(hours.shiftDate);
 
-                    if (onlyWidgetDate == onlyStreamDate) {
-                      await scheduleDatabase.deleteScheduleForDriver(
-                          scheduleId: hours.id);
-                    }
-                  },
-                ),
+                          if (onlyWidgetDate == onlyStreamDate) {
+                            await scheduleDatabase.deleteScheduleForDriver(
+                                scheduleId: hours.id);
+                          }
+                        },
+                      )
+                    : IconButton(
+                        icon: hours.vacationAccepted
+                            ? Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                              )
+                            : Icon(
+                                Icons.check_circle,
+                                color: Colors.red,
+                              ),
+                        onPressed: () => _acceptVacationRequest(hours),
+                      ),
               ),
             ),
             canAddSchedule ? _selectShift() : Text("Can't Add More shifts"),
@@ -303,7 +338,7 @@ class _AddScheduleFormState extends State<AddScheduleForm> {
               style: TextStyle(fontSize: 24.0),
             ),
             Text(
-              "Hours for the week : ${60 - totalWeekHours} ",
+              "Hours remaining for the week : ${60 - totalWeekHours} ",
               style: TextStyle(fontSize: 24.0),
             ),
             SizedBox(

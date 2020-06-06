@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:stedfasts_scheduler/screens/5.today_screen/today_screen.dart';
+import 'package:stedfasts_scheduler/screens/5.today_screen/today_screen_alt.dart';
 import 'package:stedfasts_scheduler/screens/6.schedule_screen/schedule_screen_alt.dart';
 import 'package:stedfasts_scheduler/screens/7.accounts_screen/accounts_screen.dart';
 import 'package:stedfasts_scheduler/services/auth.dart';
@@ -23,10 +24,11 @@ class _HomeScreenState extends State<HomeScreen> {
       body: PageView(
         controller: _pageController,
         children: [
-          // TodayScreenAlt(user: widget.user),
-          TodayScreen(
-            user: widget.user,
-          ),
+          // TodayScreenView.create(context),
+          TodayScreenAlt(user: widget.user),
+          // TodayScreen(
+          //   user: widget.user,
+          // ),
           ScheduleScreenAlt.create(
             context,
             user: widget.user,

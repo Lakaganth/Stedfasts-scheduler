@@ -148,20 +148,6 @@ class _DriverListViewState extends State<DriverListView> {
           Slidable(
             actionPane: SlidableDrawerActionPane(),
             actionExtentRatio: 0.25,
-            actions: <Widget>[
-              IconSlideAction(
-                caption: 'Update',
-                color: Colors.blue,
-                icon: Icons.update,
-                onTap: () => {},
-              ),
-              IconSlideAction(
-                  caption: 'Add',
-                  color: Colors.indigo,
-                  icon: Icons.schedule,
-                  onTap: () =>
-                      AdminAddNewSchedule.show(context, driver: driver)),
-            ],
             secondaryActions: <Widget>[
               IconSlideAction(
                   iconWidget: Icon(Icons.star),
@@ -205,6 +191,7 @@ class _DriverListViewState extends State<DriverListView> {
                     ),
                     subtitle: Text(
                       driver.email,
+                      textAlign: TextAlign.left,
                       style: GoogleFonts.montserrat(
                         fontSize: 16.0,
                         // color: Colors.white54,

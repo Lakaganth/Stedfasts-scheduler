@@ -7,9 +7,12 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:stedfasts_scheduler/models/schedule_model.dart';
 import 'package:stedfasts_scheduler/services/auth.dart';
 import 'package:stedfasts_scheduler/services/schedule_database.dart';
+import 'package:stedfasts_scheduler/utilities/custom_flat_button.dart';
+import 'package:stedfasts_scheduler/utilities/display_time.dart';
 import 'package:timer_builder/timer_builder.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:timer_count_down/timer_count_down.dart';
 
 class TodayScreen extends StatefulWidget {
   TodayScreen({@required this.user});
@@ -23,9 +26,18 @@ class TodayScreen extends StatefulWidget {
 class _TodayScreenState extends State<TodayScreen> {
   User get user => widget.user;
   bool hasLoggedIn = false;
+  bool startLunch = false;
   bool finishedLunch = false;
+  bool timeToLogout = false;
+  int shiftStart;
   DateTime currentLoginTime;
   DateTime lunchTime;
+  DateTime actualLunchTime;
+  DateTime lunchFinishtime;
+  DateTime actualLunchFinishtime;
+  DateTime logoutTime;
+  DateTime actualLogoutTime;
+  bool finishedEOD = false;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -55,7 +67,6 @@ class _TodayScreenState extends State<TodayScreen> {
 
   void _showLunchReminderNotification() async {
     await fiveMinutestoLunchNotification();
-    print('hello');
   }
 
   Future<void> loginNotification() async {
@@ -138,11 +149,7 @@ class _TodayScreenState extends State<TodayScreen> {
   void _todayLogin(DaySchedule schedule, var onlyTodayDate) async {
     final scheduleDatabase =
         Provider.of<ScheduleDatabase>(context, listen: false);
-    setState(() {
-      currentLoginTime = DateTime.now();
-      lunchTime = currentLoginTime.add(Duration(hours: 4));
-      hasLoggedIn = true;
-    });
+
     DaySchedule todayLogin = DaySchedule(
       id: schedule.id,
       driverId: schedule.driverId,
@@ -151,10 +158,19 @@ class _TodayScreenState extends State<TodayScreen> {
       shiftHours: schedule.shiftHours,
       shiftType: schedule.shiftType,
       weekNumber: schedule.weekNumber,
-      loginTime: currentLoginTime,
+      loginTime: DateTime.now(),
       lunchTime: null,
+      lunchFinishTime: null,
+      logoutTime: null,
+      eod: false,
     );
+
     await scheduleDatabase.setNewSchedule(todayLogin);
+    setState(() {
+      currentLoginTime = schedule.loginTime;
+      lunchTime = currentLoginTime.add(Duration(seconds: 10));
+      hasLoggedIn = true;
+    });
     _showNotifications();
     _showLunchReminderNotification();
   }
@@ -172,11 +188,63 @@ class _TodayScreenState extends State<TodayScreen> {
       weekNumber: schedule.weekNumber,
       loginTime: schedule.loginTime,
       lunchTime: DateTime.now(),
+      lunchFinishTime: null,
+      logoutTime: null,
+      eod: false,
+    );
+    await scheduleDatabase.setNewSchedule(todayLunchLogin);
+    setState(() {
+      startLunch = true;
+      actualLunchTime = schedule.lunchFinishTime;
+      lunchFinishtime = actualLunchTime.add(Duration(minutes: 30));
+    });
+  }
+
+  void _todayFinishLunch(DaySchedule schedule, var onlyTodayDate) async {
+    final scheduleDatabase =
+        Provider.of<ScheduleDatabase>(context, listen: false);
+    DaySchedule todayFinishLunchLogin = DaySchedule(
+      id: schedule.id,
+      driverId: schedule.driverId,
+      driverName: schedule.driverName,
+      shiftDate: schedule.shiftDate,
+      shiftHours: schedule.shiftHours,
+      shiftType: schedule.shiftType,
+      weekNumber: schedule.weekNumber,
+      loginTime: schedule.loginTime,
+      lunchTime: schedule.lunchTime,
+      lunchFinishTime: DateTime.now(),
+      logoutTime: null,
+      eod: false,
+    );
+    await scheduleDatabase.setNewSchedule(todayFinishLunchLogin);
+    setState(() {
+      actualLunchFinishtime = schedule.lunchFinishTime;
+      timeToLogout = true;
+      finishedLunch = true;
+    });
+  }
+
+  void _todayLogout(DaySchedule schedule, var onlyTodayDate) async {
+    final scheduleDatabase =
+        Provider.of<ScheduleDatabase>(context, listen: false);
+    DaySchedule todayLunchLogin = DaySchedule(
+      id: schedule.id,
+      driverId: schedule.driverId,
+      driverName: schedule.driverName,
+      shiftDate: schedule.shiftDate,
+      shiftHours: schedule.shiftHours,
+      shiftType: schedule.shiftType,
+      weekNumber: schedule.weekNumber,
+      loginTime: schedule.loginTime,
+      lunchTime: schedule.lunchTime,
+      lunchFinishTime: schedule.lunchFinishTime,
+      logoutTime: DateTime.now(),
       eod: true,
     );
     await scheduleDatabase.setNewSchedule(todayLunchLogin);
     setState(() {
-      finishedLunch = true;
+      finishedEOD = true;
     });
   }
 
@@ -204,6 +272,8 @@ class _TodayScreenState extends State<TodayScreen> {
                 body: SlidingUpPanel(
                   backdropEnabled: true,
                   borderRadius: _panelRadius,
+                  maxHeight: 600,
+                  parallaxEnabled: true,
                   body: _buildBody(),
                   panel: _buildPanel(todaySchedule[0]),
                 ),
@@ -311,7 +381,6 @@ class _TodayScreenState extends State<TodayScreen> {
   }
 
   Widget _buildPanel(DaySchedule schedule) {
-    int shiftStart;
     String shiftLogin = schedule.loginTime != null
         ? DateFormat.jm().format(schedule.loginTime)
         : null;
@@ -320,6 +389,12 @@ class _TodayScreenState extends State<TodayScreen> {
         : null;
     String shiftLunch = schedule.lunchTime != null
         ? DateFormat.jm().format(schedule.lunchTime)
+        : null;
+    String shiftLunchFinish = schedule.lunchFinishTime != null
+        ? DateFormat.jm().format(schedule.lunchFinishTime)
+        : null;
+    String shiftLogout = schedule.logoutTime != null
+        ? DateFormat.jm().format(schedule.logoutTime)
         : null;
 
     switch (schedule.shiftHours) {
@@ -357,15 +432,51 @@ class _TodayScreenState extends State<TodayScreen> {
             height: 30.0,
           ),
           shiftLogin == null
-              ? _buildLoginButton(schedule)
-              : _showShiftLogin(shiftLogin),
+              ? CustomFlatButton(
+                  label: "Login",
+                  onPressed: () => _todayLogin(schedule, _todayDate),
+                )
+              : DisplayTime(
+                  label: "Login",
+                  content: shiftLogin,
+                ),
           shiftToLunch != null && shiftLunch == null
               ? _buildTimers(shiftToLunch, schedule)
               : Text(''),
           SizedBox(
             height: 30.0,
           ),
-          shiftLunch != null ? _showLunchLogin(shiftLunch) : Text(''),
+          shiftLunch != null
+              ? DisplayTime(
+                  label: "Lunch",
+                  content: shiftLunch,
+                )
+              : Text(''),
+          SizedBox(
+            height: 30.0,
+          ),
+          shiftLunchFinish == null && shiftLunch != null
+              ? CustomFlatButton(
+                  label: "Finsh Lunch",
+                  onPressed: () => _todayFinishLunch(schedule, _todayDate),
+                )
+              : Text(""),
+
+          shiftLunchFinish != null
+              ? DisplayTime(label: "Lunch \nFinish", content: shiftLunchFinish)
+              : Text(""),
+          SizedBox(
+            height: 30.0,
+          ),
+          shiftLogout == null && shiftLunchFinish != null
+              ? CustomFlatButton(
+                  label: "Logout",
+                  onPressed: () => _todayLogout(schedule, _todayDate),
+                )
+              : Text(""),
+          shiftLogout != null
+              ? DisplayTime(label: "Logout", content: shiftLogout)
+              : Text(''),
         ],
       ),
     );
@@ -462,66 +573,6 @@ class _TodayScreenState extends State<TodayScreen> {
     );
   }
 
-  Widget _buildLoginButton(DaySchedule schedule) {
-    return Container(
-      height: 50,
-      width: screenWidth / 1.3,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        gradient: LinearGradient(
-          colors: [
-            Color.fromRGBO(98, 41, 253, .63),
-            Color.fromRGBO(228, 170, 255, .33),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromRGBO(143, 148, 251, .3),
-            blurRadius: 20.0,
-            offset: Offset(5, 12),
-          )
-        ],
-      ),
-      child: FlatButton(
-        onPressed:
-            !hasLoggedIn ? () => _todayLogin(schedule, _todayDate) : null,
-        child: Center(
-          child: Text(
-            "Login",
-            style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 24.0),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _showShiftLogin(shiftLogin) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: Row(
-        children: [
-          Text(
-            "Login",
-            style: GoogleFonts.metrophobic(
-              fontSize: 28.0,
-              color: Color(0xff646464),
-            ),
-          ),
-          SizedBox(
-            width: 60.0,
-          ),
-          Text(
-            "$shiftLogin",
-            style: GoogleFonts.montserrat(fontSize: 42.0),
-          ),
-        ],
-      ),
-    );
-  }
-
   _buildTimers(DateTime shiftToLunch, DaySchedule schedule) {
     return TimerBuilder.scheduled([schedule.loginTime, shiftToLunch],
         builder: (context) {
@@ -529,80 +580,28 @@ class _TodayScreenState extends State<TodayScreen> {
       final started = now.compareTo(schedule.loginTime) >= 0;
       final ended = now.compareTo(shiftToLunch) >= 0;
       return started
-          ? ended ? _showLunchButton(schedule) : _startTimer(shiftToLunch)
+          ? ended
+              ? CustomFlatButton(
+                  label: "Lunch",
+                  onPressed: () => _todayLunch(schedule, _todayDate),
+                )
+              : _startTimer(shiftToLunch)
           : Text("Not Started");
     });
   }
 
-  _showLunchButton(DaySchedule schedule) {
-    return Container(
-      height: 50,
-      width: screenWidth / 1.3,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        gradient: LinearGradient(
-          colors: [
-            Color.fromRGBO(98, 41, 253, .63),
-            Color.fromRGBO(228, 170, 255, .33),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromRGBO(143, 148, 251, .3),
-            blurRadius: 20.0,
-            offset: Offset(5, 12),
-          )
-        ],
-      ),
-      child: FlatButton(
-        onPressed: hasLoggedIn ? () => _todayLunch(schedule, _todayDate) : null,
-        child: Center(
-          child: Text(
-            "Lunch",
-            style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 24.0),
-          ),
-        ),
-      ),
-    );
-  }
-
   _startTimer(shiftToLunch) {
-    return Center(
-      child: CircularCountDownTimer(
-        width: MediaQuery.of(context).size.width / 3,
-        height: MediaQuery.of(context).size.height / 3,
-        duration: 10,
-        fillColor: Colors.red,
-        color: Colors.white,
-        strokeWidth: 5.0,
-      ),
-    );
-  }
+    print(shiftToLunch);
+    var secs = (shiftToLunch.millisecondsSinceEpoch) / 1000;
 
-  _showLunchLogin(shiftLunch) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: Row(
-        children: [
-          Text(
-            "Lunch",
-            style: GoogleFonts.metrophobic(
-              fontSize: 28.0,
-              color: Color(0xff646464),
-            ),
-          ),
-          SizedBox(
-            width: 50.0,
-          ),
-          Text(
-            "$shiftLunch",
-            style: GoogleFonts.montserrat(fontSize: 42.0),
-          ),
-        ],
-      ),
+    // print(secs);
+    return CircularCountDownTimer(
+      width: MediaQuery.of(context).size.width / 3,
+      height: MediaQuery.of(context).size.height / 4,
+      duration: 10,
+      fillColor: Colors.red,
+      color: Colors.white,
+      strokeWidth: 5.0,
     );
   }
 }

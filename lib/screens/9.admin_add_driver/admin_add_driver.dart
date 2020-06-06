@@ -66,6 +66,11 @@ class _AdminAddDriverState extends State<AdminAddDriver> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Add New Driver"),
+        leading: IconButton(
+            icon: Icon(Icons.accessible_forward),
+            onPressed: () {
+              Navigator.of(context).pop();
+            }),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

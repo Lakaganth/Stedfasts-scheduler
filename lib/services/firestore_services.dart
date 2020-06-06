@@ -23,6 +23,12 @@ class FirestoreService {
     await reference.delete();
   }
 
+  // Future<Map<String,dynamic>> getData<T>({@required String path}) async {
+  //   final reference = Firestore.instance.document(path);
+  //  final document =  await reference.get();
+  //   return document.data;
+  // }
+
 // Stream of incoming Collections
   Stream<List<T>> collectionStream<T>({
     @required String path,

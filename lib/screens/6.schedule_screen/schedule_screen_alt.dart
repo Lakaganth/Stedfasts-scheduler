@@ -2,25 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:stedfasts_scheduler/models/driver_model.dart';
 import 'package:stedfasts_scheduler/models/schedule_model.dart';
 import 'package:stedfasts_scheduler/screens/6.schedule_screen/schedule_change_notifier.dart';
+import 'package:stedfasts_scheduler/screens/6.schedule_screen/vacation_request.dart';
 import 'package:stedfasts_scheduler/services/auth.dart';
 import 'package:stedfasts_scheduler/services/schedule_database.dart';
 import 'package:stedfasts_scheduler/utilities/constants.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class ScheduleScreenAlt extends StatefulWidget {
-  ScheduleScreenAlt({@required this.model});
-  // final User user;
+  ScheduleScreenAlt({@required this.user});
 
-  final ScheduleScreenChangeModel model;
+  final User user;
 
   static Widget create(BuildContext context, {User user}) {
-    return ChangeNotifierProvider<ScheduleScreenChangeModel>(
-      create: (context) => ScheduleScreenChangeModel(user: user),
-      child: Consumer<ScheduleScreenChangeModel>(
-        builder: (context, model, _) => ScheduleScreenAlt(model: model),
-      ),
+    return ScheduleScreenAlt(
+      user: user,
     );
   }
 
@@ -29,7 +27,7 @@ class ScheduleScreenAlt extends StatefulWidget {
 }
 
 class _ScheduleScreenAltState extends State<ScheduleScreenAlt> {
-  User get user => widget.model.user;
+  User get user => widget.user;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +45,7 @@ class _ScheduleScreenAltState extends State<ScheduleScreenAlt> {
                     List<DaySchedule> items = snapshot.data;
                     return MainScheduleColumn(
                       schedules: items,
+                      user: widget.user,
                     );
                   } else if (snapshot.hasError) {
                     return Center(
@@ -70,20 +69,10 @@ class _ScheduleScreenAltState extends State<ScheduleScreenAlt> {
 }
 
 class MainScheduleColumn extends StatefulWidget {
-  MainScheduleColumn({@required this.schedules});
-  // final ScheduleScreenChangeModel model;
-  final List<DaySchedule> schedules;
+  MainScheduleColumn({@required this.schedules, @required this.user});
 
-  // static Widget create(BuildContext context,
-  //     {User user, List<DaySchedule> schedules}) {
-  //   return ChangeNotifierProvider<ScheduleScreenChangeModel>(
-  //     create: (context) =>
-  //         ScheduleScreenChangeModel(user: user, schedules: schedules),
-  //     child: Consumer<ScheduleScreenChangeModel>(
-  //       builder: (context, model, _) => MainScheduleColumn(model: model),
-  //     ),
-  //   );
-  // }
+  final List<DaySchedule> schedules;
+  final User user;
 
   @override
   _MainScheduleColumnState createState() => _MainScheduleColumnState();
@@ -119,17 +108,32 @@ class _MainScheduleColumnState extends State<MainScheduleColumn> {
     return data;
   }
 
+  // DaySchedule noSchedule = DaySchedule()
+
   int weekNumber(DateTime date) {
     int dayOfYear = int.parse(DateFormat("D").format(date));
     return ((dayOfYear - date.weekday + 10) / 7).floor();
   }
+
+  List<DaySchedule> getselectedDateSchedule() {
+    if (widget.schedules.length > 0) {
+      return widget.schedules.where((e) {
+        String onlyshiftDate = DateFormat('dd-MM-yyyy').format(e.shiftDate);
+        String onlySelectedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+        return onlyshiftDate == onlySelectedDate;
+      }).toList();
+    } else {
+      return [];
+    }
+  }
+
+  List<DaySchedule> get selectedDateSchedule => getselectedDateSchedule();
 
   @override
   Widget build(BuildContext context) {
     events = groupEvents(widget.schedules);
 
     List<DaySchedule> currentWeeksScheduleList = widget.schedules.where((e) {
-         
       int _selectedWeekNumber = weekNumber(selectedDate ?? DateTime.now());
       return e.weekNumber == _selectedWeekNumber;
     }).toList();
@@ -230,8 +234,24 @@ class _MainScheduleColumnState extends State<MainScheduleColumn> {
             _shiftStartTime = "6:00 PM";
           }
           break;
+        case 0:
+          {
+            _shiftStartTime = "Vacation";
+          }
+          break;
       }
     }
+
+    DaySchedule noSchedule = DaySchedule(
+      id: "",
+      driverId: null,
+      driverName: null,
+      shiftDate: selectedDate,
+      shiftHours: 0,
+      shiftType: "",
+      weekNumber: weekNumber(selectedDate),
+    );
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 25.0),
       child: Container(
@@ -252,16 +272,6 @@ class _MainScheduleColumnState extends State<MainScheduleColumn> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            selectedEvents != null && selectedEvents.length > 0
-                ? Text(
-                    " ${DateFormat("dd-MM-yyyy").format(selectedDate)}",
-                    textAlign: TextAlign.center,
-                    style: kDayScheduleInfoTextStyle,
-                  )
-                : Text(''),
-            SizedBox(
-              height: 20.0,
-            ),
             selectedEvents != null && selectedEvents.length > 0
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -299,6 +309,39 @@ class _MainScheduleColumnState extends State<MainScheduleColumn> {
                     ],
                   )
                 : Text(''),
+            SizedBox(
+              height: 0.0,
+            ),
+            selectedDate != null
+                ? FlatButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => VacationRequest(
+                            requestedDate: selectedDate,
+                            schedule: selectedDateSchedule.length > 0
+                                ? selectedDateSchedule[0]
+                                : noSchedule,
+                            user: widget.user,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "Request Vactaion",
+                      style: GoogleFonts.montserrat(
+                        color: Colors.yellow,
+                        fontSize: 18.0,
+                      ),
+                    ),
+                  )
+                : Text(
+                    'Vacation Request Sent',
+                    style: GoogleFonts.montserrat(
+                      color: Colors.yellow,
+                      fontSize: 18.0,
+                    ),
+                  ),
           ],
         ),
       ),
@@ -340,6 +383,12 @@ class _MainScheduleColumnState extends State<MainScheduleColumn> {
         {
           _shiftStartTime = "6:00 PM";
           _borderColor = Colors.blue;
+        }
+        break;
+      case 0:
+        {
+          _shiftStartTime = "Vacation";
+          _borderColor = Colors.yellow;
         }
         break;
     }
