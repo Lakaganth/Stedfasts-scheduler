@@ -51,12 +51,5 @@ class ScheduleFirestoreDatabase implements ScheduleDatabase {
             : null,
         builder: (data, documentId) => DaySchedule.fromMap(data, documentId),
       );
-  // Stream<List<DaySchedule>> todayScheduleStream(User user, DateTime today) =>
-  //     _service.collectionStream<DaySchedule>(
-  //       path: APIPath.daySchedules(),
-  //       queryBuilder: user != null
-  //           ? (query) => query.where('driverId', isEqualTo: user.uid )
-  //           : null,
-  //       builder: (data, documentId) => DaySchedule.fromMap(data, documentId),
-  //     );
+
 }
